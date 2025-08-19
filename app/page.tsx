@@ -10,9 +10,9 @@ export default function Home() {
     const form = new FormData(e.currentTarget);
     const method = String(form.get('method') || 'POST');
     const params = new URLSearchParams();
-    for (const [k, v] of form.entries()) {
+    form.forEach((v, k) => {
       if (k !== 'method') params.append(k, String(v));
-    }
+    });
     try {
       setLoading(true);
       let res: Response;
