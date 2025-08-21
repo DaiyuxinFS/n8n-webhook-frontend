@@ -109,23 +109,28 @@ export default function Home() {
           </div>
         )}
       </form>
-      {result && (
+      {result && result !== '[HTML content received]' && (
         <div style={{ marginTop: 16 }}>
           <h3>API 响应:</h3>
           <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 12, fontSize: '12px', maxHeight: '200px', overflow: 'auto' }}>{result}</pre>
         </div>
       )}
       
-      {showPreview && htmlContent && (
+      {(showPreview && htmlContent) || (result && result.includes('<!doctype html>')) ? (
         <div style={{ marginTop: 16 }}>
-          <h3>HTML 预览:</h3>
-          <div style={{ border: '1px solid #ddd', padding: 16, background: 'white', maxHeight: '500px', overflow: 'auto' }}>
-            <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+          <h3>生成的内容:</h3>
+          <div style={{ border: '1px solid #ddd', borderRadius: '8px', background: 'white', maxHeight: '600px', overflow: 'auto' }}>
+            {htmlContent ? (
+              <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: result }} />
+            )}
           </div>
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 12, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button 
               onClick={() => {
-                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const content = htmlContent || result;
+                const blob = new Blob([content], { type: 'text/html' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -133,24 +138,58 @@ export default function Home() {
                 a.click();
                 URL.revokeObjectURL(url);
               }}
-              style={{ marginRight: 8 }}
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#007aff', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer' 
+              }}
             >
               下载 HTML 文件
             </button>
             <button 
               onClick={() => {
+                const content = htmlContent || result;
                 const newWindow = window.open('', '_blank');
                 if (newWindow) {
-                  newWindow.document.write(htmlContent);
+                  newWindow.document.write(content);
                   newWindow.document.close();
                 }
+              }}
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#34c759', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer' 
               }}
             >
               在新窗口打开
             </button>
+            <button 
+              onClick={() => {
+                const content = htmlContent || result;
+                navigator.clipboard.writeText(content).then(() => {
+                  alert('HTML 代码已复制到剪贴板！');
+                });
+              }}
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: '#ff9500', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer' 
+              }}
+            >
+              复制 HTML 代码
+            </button>
           </div>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }
