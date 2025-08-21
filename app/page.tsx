@@ -46,12 +46,12 @@ export default function Home() {
         </label>
         <div style={{ marginTop: 12 }}>
           <label>
-            Name: <input name="name" placeholder="Alice" />
+            Tag: <input name="tag" placeholder="example-tag" />
           </label>
         </div>
         <div style={{ marginTop: 12 }}>
           <label>
-            Email: <input name="email" placeholder="alice@example.com" />
+            Number: <input name="number" placeholder="123" />
           </label>
         </div>
         <button type="submit" disabled={loading} style={{ marginTop: 16 }}>
