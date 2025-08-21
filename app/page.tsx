@@ -87,32 +87,100 @@ export default function Home() {
   }
 
   return (
-    <main style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif' }}>
+    <>
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+      <main style={{ maxWidth: 800, margin: '40px auto', fontFamily: 'sans-serif', padding: '0 20px' }}>
       <h1>Trigger n8n Webhook</h1>
-      <form onSubmit={onSubmit}>
-        <label>
-          Method:
-          <select name="method" defaultValue="POST" style={{ marginLeft: 8 }}>
-            <option>GET</option>
-            <option>POST</option>
-          </select>
-        </label>
-        <div style={{ marginTop: 12 }}>
-          <label>
-            Tag: <input name="tag" placeholder="example-tag" />
+      <form onSubmit={onSubmit} style={{ 
+        background: '#f8f9fa', 
+        padding: '24px', 
+        borderRadius: '8px', 
+        border: '1px solid #e9ecef',
+        marginBottom: '24px'
+      }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Method:
+            <select name="method" defaultValue="POST" style={{ 
+              padding: '8px 12px', 
+              borderRadius: '4px', 
+              border: '1px solid #ddd',
+              fontSize: '14px'
+            }}>
+              <option>GET</option>
+              <option>POST</option>
+            </select>
           </label>
         </div>
-        <div style={{ marginTop: 12 }}>
-          <label>
-            Number: <input name="number" placeholder="123" />
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+          <label style={{ flex: 1 }}>
+            <div style={{ marginBottom: '4px', fontWeight: '500' }}>Tag:</div>
+            <input 
+              name="tag" 
+              placeholder="example-tag" 
+              style={{ 
+                width: '100%', 
+                padding: '8px 12px', 
+                borderRadius: '4px', 
+                border: '1px solid #ddd',
+                fontSize: '14px'
+              }}
+            />
+          </label>
+          <label style={{ flex: 1 }}>
+            <div style={{ marginBottom: '4px', fontWeight: '500' }}>Number:</div>
+            <input 
+              name="number" 
+              placeholder="123" 
+              style={{ 
+                width: '100%', 
+                padding: '8px 12px', 
+                borderRadius: '4px', 
+                border: '1px solid #ddd',
+                fontSize: '14px'
+              }}
+            />
           </label>
         </div>
-        <button type="submit" disabled={loading} style={{ marginTop: 16 }}>
+        <button 
+          type="submit" 
+          disabled={loading} 
+          style={{ 
+            padding: '10px 20px', 
+            backgroundColor: '#007aff', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px', 
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}
+        >
           {loading ? '处理中...' : '发送请求'}
         </button>
         {loading && (
-          <div style={{ marginTop: 8, color: '#666', fontSize: '14px' }}>
-            ⏳ 正在处理数据，请稍候...
+          <div style={{ 
+            marginTop: '12px', 
+            color: '#666', 
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              border: '2px solid #e3e3e3',
+              borderTop: '2px solid #007aff',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            正在处理数据，请稍候...
           </div>
         )}
       </form>
@@ -126,11 +194,33 @@ export default function Home() {
       {(showPreview && htmlContent) || (result && (result.includes('<!doctype html>') || result.includes('<html') || result.includes('<body'))) ? (
         <div style={{ marginTop: 16 }}>
           <h3>生成的内容:</h3>
-          <div style={{ border: '1px solid #ddd', borderRadius: '8px', background: 'white', maxHeight: '600px', overflow: 'auto' }}>
+          <div style={{ 
+            border: '1px solid #ddd', 
+            borderRadius: '8px', 
+            background: 'white', 
+            maxHeight: '800px', 
+            overflow: 'auto',
+            padding: '20px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
             {htmlContent ? (
-              <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+              <div 
+                dangerouslySetInnerHTML={{ __html: htmlContent }} 
+                style={{
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  lineHeight: '1.6',
+                  fontSize: '14px'
+                }}
+              />
             ) : (
-              <div dangerouslySetInnerHTML={{ __html: result }} />
+              <div 
+                dangerouslySetInnerHTML={{ __html: result }} 
+                style={{
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  lineHeight: '1.6',
+                  fontSize: '14px'
+                }}
+              />
             )}
           </div>
           <div style={{ marginTop: 12, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -197,7 +287,8 @@ export default function Home() {
           </div>
         </div>
       ) : null}
-    </main>
+      </main>
+    </>
   );
 }
 
