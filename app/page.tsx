@@ -33,7 +33,16 @@ export default function Home() {
           body: JSON.stringify(bodyObj)
         });
       }
-      
+      // 根据返回类型分别处理
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        const html = await res.text();
+        setHtmlContent(html);
+        setShowPreview(true);
+        setResult('[HTML content received]');
+        return;
+      }
+
       const responseText = await res.text();
       setResult(responseText);
       

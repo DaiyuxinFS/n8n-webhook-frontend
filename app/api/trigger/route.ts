@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const res = await fetch(url, { 
       method: 'GET', 
       headers: { 
-        'accept': 'application/json',
+        'accept': '*/*',
         'user-agent': 'n8n-webhook-frontend/1.0'
       }, 
       cache: 'no-store',
@@ -30,14 +30,12 @@ export async function GET(req: NextRequest) {
       });
     }
     
-    const text = await res.text();
-    return new Response(text, { 
-      status: res.status, 
-      headers: { 
-        'content-type': res.headers.get('content-type') ?? 'text/plain',
-        'cache-control': 'no-cache'
-      } 
+    const passthroughHeaders = new Headers();
+    const allowList = ['content-type', 'content-length', 'content-disposition', 'cache-control'];
+    res.headers.forEach((v, k) => {
+      if (allowList.includes(k.toLowerCase())) passthroughHeaders.set(k, v);
     });
+    return new Response(res.body, { status: res.status, headers: passthroughHeaders });
   } catch (error) {
     console.error('Error calling n8n webhook:', error);
     return new Response(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
@@ -58,7 +56,7 @@ export async function POST(req: NextRequest) {
       method: 'POST', 
       headers: { 
         'content-type': contentType, 
-        'accept': 'application/json',
+        'accept': '*/*',
         'user-agent': 'n8n-webhook-frontend/1.0'
       }, 
       body,
@@ -72,14 +70,12 @@ export async function POST(req: NextRequest) {
       });
     }
     
-    const text = await res.text();
-    return new Response(text, { 
-      status: res.status, 
-      headers: { 
-        'content-type': res.headers.get('content-type') ?? 'text/plain',
-        'cache-control': 'no-cache'
-      } 
+    const passthroughHeaders = new Headers();
+    const allowList = ['content-type', 'content-length', 'content-disposition', 'cache-control'];
+    res.headers.forEach((v, k) => {
+      if (allowList.includes(k.toLowerCase())) passthroughHeaders.set(k, v);
     });
+    return new Response(res.body, { status: res.status, headers: passthroughHeaders });
   } catch (error) {
     console.error('Error calling n8n webhook:', error);
     return new Response(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
