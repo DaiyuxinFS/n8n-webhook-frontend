@@ -33,18 +33,25 @@ export default function Home() {
           body: JSON.stringify(bodyObj)
         });
       }
+      const responseText = await res.text();
+      setResult(responseText);
+      
       // 根据返回类型分别处理
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('text/html')) {
-        const html = await res.text();
-        setHtmlContent(html);
+        console.log('Received text/html directly, showing preview...');
+        setHtmlContent(responseText);
         setShowPreview(true);
-        setResult('[HTML content received]');
         return;
       }
-
-      const responseText = await res.text();
-      setResult(responseText);
+      
+      // 检查响应内容是否包含 HTML
+      if (responseText.includes('<!doctype html>') || responseText.includes('<html') || responseText.includes('<body')) {
+        console.log('Response contains HTML content, showing preview...');
+        setHtmlContent(responseText);
+        setShowPreview(true);
+        return;
+      }
       
       // 尝试解析返回的 JSON 数据
       try {
@@ -116,7 +123,7 @@ export default function Home() {
         </div>
       )}
       
-      {(showPreview && htmlContent) || (result && result.includes('<!doctype html>')) ? (
+      {(showPreview && htmlContent) || (result && (result.includes('<!doctype html>') || result.includes('<html') || result.includes('<body'))) ? (
         <div style={{ marginTop: 16 }}>
           <h3>生成的内容:</h3>
           <div style={{ border: '1px solid #ddd', borderRadius: '8px', background: 'white', maxHeight: '600px', overflow: 'auto' }}>
