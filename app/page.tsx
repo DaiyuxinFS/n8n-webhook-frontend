@@ -40,15 +40,30 @@ export default function Home() {
       // 尝试解析返回的 JSON 数据
       try {
         const jsonData = JSON.parse(responseText);
+        console.log('Parsed JSON data:', jsonData);
+        
+        // 检查是否有 binary 数据
         if (jsonData && jsonData.binary && jsonData.binary.file && jsonData.binary.file.data) {
+          console.log('Found binary data, decoding HTML...');
           // 解码 base64 HTML 内容
           const htmlData = atob(jsonData.binary.file.data);
           setHtmlContent(htmlData);
           setShowPreview(true);
+        } else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].binary) {
+          console.log('Found binary data in array format...');
+          // 处理数组格式的数据
+          const firstItem = jsonData[0];
+          if (firstItem.binary && firstItem.binary.file && firstItem.binary.file.data) {
+            const htmlData = atob(firstItem.binary.file.data);
+            setHtmlContent(htmlData);
+            setShowPreview(true);
+          }
+        } else {
+          console.log('No binary data found in response');
         }
       } catch (parseError) {
         // 如果不是 JSON 或没有预期的数据结构，就显示原始文本
-        console.log('Response is not JSON or does not contain expected data structure');
+        console.log('Response is not JSON or does not contain expected data structure:', parseError);
       }
     } finally {
       setLoading(false);
