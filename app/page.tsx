@@ -5,7 +5,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>('');
-  const [showPreview, setShowPreview] = useState(false);
+  const [hasContent, setHasContent] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -19,7 +19,7 @@ export default function Home() {
       setLoading(true);
       setResult('');
       setHtmlContent('');
-      setShowPreview(false);
+      setHasContent(false);
       
       let res: Response;
       if (method === 'GET') {
@@ -39,17 +39,17 @@ export default function Home() {
       // 根据返回类型分别处理
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('text/html')) {
-        console.log('Received text/html directly, showing preview...');
+        console.log('Received text/html directly');
         setHtmlContent(responseText);
-        setShowPreview(true);
+        setHasContent(true);
         return;
       }
       
       // 检查响应内容是否包含 HTML
       if (responseText.includes('<!doctype html>') || responseText.includes('<html') || responseText.includes('<body')) {
-        console.log('Response contains HTML content, showing preview...');
+        console.log('Response contains HTML content');
         setHtmlContent(responseText);
-        setShowPreview(true);
+        setHasContent(true);
         return;
       }
       
@@ -64,7 +64,7 @@ export default function Home() {
           // 解码 base64 HTML 内容
           const htmlData = atob(jsonData.binary.file.data);
           setHtmlContent(htmlData);
-          setShowPreview(true);
+          setHasContent(true);
         } else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].binary) {
           console.log('Found binary data in array format...');
           // 处理数组格式的数据
@@ -72,7 +72,7 @@ export default function Home() {
           if (firstItem.binary && firstItem.binary.file && firstItem.binary.file.data) {
             const htmlData = atob(firstItem.binary.file.data);
             setHtmlContent(htmlData);
-            setShowPreview(true);
+            setHasContent(true);
           }
         } else {
           console.log('No binary data found in response');
@@ -86,6 +86,41 @@ export default function Home() {
     }
   }
 
+  // 处理下载HTML文件
+  const handleDownload = () => {
+    if (!htmlContent && !result) return;
+    const content = htmlContent || result;
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'merged_content.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // 处理在新窗口打开
+  const handleOpenInNewWindow = () => {
+    if (!htmlContent && !result) return;
+    const content = htmlContent || result;
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(content);
+      newWindow.document.close();
+    }
+  };
+
+  // 处理复制HTML代码
+  const handleCopyCode = () => {
+    if (!htmlContent && !result) return;
+    const content = htmlContent || result;
+    navigator.clipboard.writeText(content).then(() => {
+      alert('HTML 代码已复制到剪贴板！');
+    }).catch(() => {
+      alert('复制失败，请手动复制');
+    });
+  };
+
   return (
     <>
       <style jsx>{`
@@ -95,198 +130,189 @@ export default function Home() {
         }
       `}</style>
       <main style={{ maxWidth: 800, margin: '40px auto', fontFamily: 'sans-serif', padding: '0 20px' }}>
-      <h1>Trigger n8n Webhook</h1>
-      <form onSubmit={onSubmit} style={{ 
-        background: '#f8f9fa', 
-        padding: '24px', 
-        borderRadius: '8px', 
-        border: '1px solid #e9ecef',
-        marginBottom: '24px'
-      }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Method:
-            <select name="method" defaultValue="POST" style={{ 
-              padding: '8px 12px', 
+        <h1>Trigger n8n Webhook</h1>
+        
+        {/* 表单区域 */}
+        <form onSubmit={onSubmit} style={{ 
+          background: '#f8f9fa', 
+          padding: '24px', 
+          borderRadius: '8px', 
+          border: '1px solid #e9ecef',
+          marginBottom: '24px'
+        }}>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Method:
+              <select name="method" defaultValue="POST" style={{ 
+                padding: '8px 12px', 
+                borderRadius: '4px', 
+                border: '1px solid #ddd',
+                fontSize: '14px'
+              }}>
+                <option>GET</option>
+                <option>POST</option>
+              </select>
+            </label>
+          </div>
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+            <label style={{ flex: 1 }}>
+              <div style={{ marginBottom: '4px', fontWeight: '500' }}>Tag:</div>
+              <input 
+                name="tag" 
+                placeholder="example-tag" 
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  borderRadius: '4px', 
+                  border: '1px solid #ddd',
+                  fontSize: '14px'
+                }}
+              />
+            </label>
+            <label style={{ flex: 1 }}>
+              <div style={{ marginBottom: '4px', fontWeight: '500' }}>Number:</div>
+              <input 
+                name="number" 
+                placeholder="123" 
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  borderRadius: '4px', 
+                  border: '1px solid #ddd',
+                  fontSize: '14px'
+                }}
+              />
+            </label>
+          </div>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            style={{ 
+              padding: '10px 20px', 
+              backgroundColor: '#007aff', 
+              color: 'white', 
+              border: 'none', 
               borderRadius: '4px', 
-              border: '1px solid #ddd',
-              fontSize: '14px'
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            {loading ? '处理中...' : '发送请求'}
+          </button>
+          {loading && (
+            <div style={{ 
+              marginTop: '12px', 
+              color: '#666', 
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
             }}>
-              <option>GET</option>
-              <option>POST</option>
-            </select>
-          </label>
-        </div>
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-          <label style={{ flex: 1 }}>
-            <div style={{ marginBottom: '4px', fontWeight: '500' }}>Tag:</div>
-            <input 
-              name="tag" 
-              placeholder="example-tag" 
-              style={{ 
-                width: '100%', 
-                padding: '8px 12px', 
-                borderRadius: '4px', 
-                border: '1px solid #ddd',
-                fontSize: '14px'
-              }}
-            />
-          </label>
-          <label style={{ flex: 1 }}>
-            <div style={{ marginBottom: '4px', fontWeight: '500' }}>Number:</div>
-            <input 
-              name="number" 
-              placeholder="123" 
-              style={{ 
-                width: '100%', 
-                padding: '8px 12px', 
-                borderRadius: '4px', 
-                border: '1px solid #ddd',
-                fontSize: '14px'
-              }}
-            />
-          </label>
-        </div>
-        <button 
-          type="submit" 
-          disabled={loading} 
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: '#007aff', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px', 
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}
-        >
-          {loading ? '处理中...' : '发送请求'}
-        </button>
-        {loading && (
-          <div style={{ 
-            marginTop: '12px', 
-            color: '#666', 
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <div style={{
-              width: '16px',
-              height: '16px',
-              border: '2px solid #e3e3e3',
-              borderTop: '2px solid #007aff',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            正在处理数据，请稍候...
+              <div style={{
+                width: '16px',
+                height: '16px',
+                border: '2px solid #e3e3e3',
+                borderTop: '2px solid #007aff',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              正在处理数据，请稍候...
+            </div>
+          )}
+        </form>
+
+        {/* API响应信息 */}
+        {result && result !== '[HTML content received]' && !hasContent && (
+          <div style={{ marginTop: 16 }}>
+            <h3>API 响应:</h3>
+            <pre style={{ 
+              whiteSpace: 'pre-wrap', 
+              background: '#f5f5f5', 
+              padding: 12, 
+              fontSize: '12px', 
+              maxHeight: '200px', 
+              overflow: 'auto',
+              borderRadius: '4px'
+            }}>
+              {result}
+            </pre>
           </div>
         )}
-      </form>
-      {result && result !== '[HTML content received]' && (
-        <div style={{ marginTop: 16 }}>
-          <h3>API 响应:</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 12, fontSize: '12px', maxHeight: '200px', overflow: 'auto' }}>{result}</pre>
-        </div>
-      )}
-      
-      {(showPreview && htmlContent) || (result && (result.includes('<!doctype html>') || result.includes('<html') || result.includes('<body'))) ? (
-        <div style={{ marginTop: 16 }}>
-          <h3>生成的内容:</h3>
+
+        {/* 成功提示和操作按钮区域 */}
+        {hasContent && (
           <div style={{ 
-            border: '1px solid #ddd', 
+            background: '#e8f5e8', 
+            border: '1px solid #4caf50', 
             borderRadius: '8px', 
-            background: 'white', 
-            maxHeight: '800px', 
-            overflow: 'auto',
-            padding: '20px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            padding: '20px', 
+            marginTop: '16px' 
           }}>
-            {htmlContent ? (
-              <div 
-                dangerouslySetInnerHTML={{ __html: htmlContent }} 
-                style={{
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  lineHeight: '1.6',
-                  fontSize: '14px'
+            <h3 style={{ margin: '0 0 16px 0', color: '#2e7d32' }}>✅ 生成成功！</h3>
+            <p style={{ margin: '0 0 20px 0', color: '#388e3c' }}>
+              内容已成功生成，请选择下方操作：
+            </p>
+            
+            {/* 操作按钮 */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button 
+                onClick={handleDownload}
+                style={{ 
+                  padding: '12px 24px', 
+                  backgroundColor: '#007aff', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
-              />
-            ) : (
-              <div 
-                dangerouslySetInnerHTML={{ __html: result }} 
-                style={{
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  lineHeight: '1.6',
-                  fontSize: '14px'
+              >
+                📥 下载 HTML 文件
+              </button>
+              <button 
+                onClick={handleOpenInNewWindow}
+                style={{ 
+                  padding: '12px 24px', 
+                  backgroundColor: '#34c759', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
-              />
-            )}
+              >
+                🔗 在新窗口打开
+              </button>
+              <button 
+                onClick={handleCopyCode}
+                style={{ 
+                  padding: '12px 24px', 
+                  backgroundColor: '#ff9500', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                📋 复制 HTML 代码
+              </button>
+            </div>
           </div>
-          <div style={{ marginTop: 12, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => {
-                const content = htmlContent || result;
-                const blob = new Blob([content], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'merged_content.html';
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-              style={{ 
-                padding: '8px 16px', 
-                backgroundColor: '#007aff', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: 'pointer' 
-              }}
-            >
-              下载 HTML 文件
-            </button>
-            <button 
-              onClick={() => {
-                const content = htmlContent || result;
-                const newWindow = window.open('', '_blank');
-                if (newWindow) {
-                  newWindow.document.write(content);
-                  newWindow.document.close();
-                }
-              }}
-              style={{ 
-                padding: '8px 16px', 
-                backgroundColor: '#34c759', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: 'pointer' 
-              }}
-            >
-              在新窗口打开
-            </button>
-            <button 
-              onClick={() => {
-                const content = htmlContent || result;
-                navigator.clipboard.writeText(content).then(() => {
-                  alert('HTML 代码已复制到剪贴板！');
-                });
-              }}
-              style={{ 
-                padding: '8px 16px', 
-                backgroundColor: '#ff9500', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: 'pointer' 
-              }}
-            >
-              复制 HTML 代码
-            </button>
-          </div>
-        </div>
-      ) : null}
+        )}
       </main>
     </>
   );
