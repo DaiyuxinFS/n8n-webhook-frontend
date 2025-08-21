@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://wsnb.zeabur.app/webhook-test/7e668ab2-dcdf-421a-88c5-4d2163c6450e';
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://wsnb.zeabur.app/webhook/7e668ab2-dcdf-421a-88c5-4d2163c6450e';
 
 function withQuery(base: string, params: URLSearchParams) {
   const u = new URL(base);
