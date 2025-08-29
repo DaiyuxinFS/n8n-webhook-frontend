@@ -1,11 +1,31 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const [username, setUsername] = useState<string>('');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [hasContent, setHasContent] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // 检查登录状态
+    const loggedIn = localStorage.getItem('isLoggedIn');
+    const storedUsername = localStorage.getItem('username');
+
+    if (!loggedIn || loggedIn !== 'true') {
+      router.push('/auth/signin');
+      return;
+    }
+
+    setIsLoggedIn(true);
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, [router]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -130,7 +150,32 @@ export default function Home() {
         }
       `}</style>
       <main style={{ maxWidth: 800, margin: '40px auto', fontFamily: 'sans-serif', padding: '0 20px' }}>
-        <h1>Trigger n8n Webhook</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h1 style={{ margin: 0 }}>Trigger n8n Webhook</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <span style={{ color: '#666', fontSize: '14px' }}>
+              欢迎, {username}
+            </span>
+            <button
+              onClick={() => {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                router.push('/auth/signin');
+              }}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#ff3b30',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              退出登录
+            </button>
+          </div>
+        </div>
         
         {/* 表单区域 */}
         <form onSubmit={onSubmit} style={{ 
