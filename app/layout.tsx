@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Trigger n8n Webhook'
+  title: '外网社媒热点爬虫'
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

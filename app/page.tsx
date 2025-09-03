@@ -151,7 +151,7 @@ export default function Home() {
       `}</style>
       <main style={{ maxWidth: 800, margin: '40px auto', fontFamily: 'sans-serif', padding: '0 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ margin: 0 }}>Trigger n8n Webhook</h1>
+          <h1 style={{ margin: 0 }}>外网社媒热点爬虫</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <span style={{ color: '#666', fontSize: '14px' }}>
               欢迎, {username}
